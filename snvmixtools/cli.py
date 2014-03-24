@@ -31,9 +31,8 @@ def freqs(snvmix_handle, picture_handle, log_handle):
     #for
 
     log_handle.write("{}\n".format(total))
-    pyplot.yscale("log")
     pyplot.axis([0, 0.5, 0.1, 100000])
-    pyplot.hist(data, bins=100)
+    pyplot.hist(data, bins=100, log=True)
     pyplot.savefig("{}".format(picture_handle.name))
 #freqs
 
