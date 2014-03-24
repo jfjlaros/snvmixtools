@@ -3,7 +3,6 @@
 import argparse
 import matplotlib
 
-matplotlib.use("SVG")
 from matplotlib import pyplot
 
 import wiggelen
