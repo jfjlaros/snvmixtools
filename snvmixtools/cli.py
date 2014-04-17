@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import division
+
 import argparse
 import matplotlib
 
@@ -9,6 +11,11 @@ import wiggelen
 
 from . import docSplit, version, usage
 from . import snvmix_parse
+
+plotter = {
+    "min": lambda x, y: min(x, y),
+    "min_norm": lambda x, y: min(x, y) / (x + y)
+}
 
 def freqs(snvmix_handle, picture_handle, log_handle):
     """
@@ -36,12 +43,12 @@ def freqs(snvmix_handle, picture_handle, log_handle):
     pyplot.savefig("{}".format(picture_handle.name))
 #freqs
 
-def snvmix2wig(snvmix_handle, wiggle_handle):
+def snvmix2wig(snvmix_handle, wiggle_handle, plot_function="min"):
     """
     Convert an SNVMix file to wiggle.
     """
     wiggelen.write(map(lambda x: (x.chromosome, x.position,
-        min(x.reference_count, x.alternative_count)),
+        plot_function(x.reference_count, x.alternative_count)),
         snvmix_parse.walker(snvmix_handle)), track=wiggle_handle)
 #snvmix2wig
 
@@ -68,6 +75,9 @@ def main():
         parents=[input_parser], description=docSplit(snvmix2wig))
     snvmix2wig_parser.add_argument("OUTPUT", type=argparse.FileType('w'),
         help="output file")
+    snvmix2wig_parser.add_argument("-p", dest="plot_function",
+        metavar="FUNCTION", choices=plotter, default="min",
+        help="plotting function")
 
     args = parser.parse_args()
     
@@ -75,7 +85,7 @@ def main():
         freqs(args.INPUT, *args.OUTPUT)
 
     if args.subcommand == "snvmix2wig":
-        snvmix2wig(args.INPUT, args.OUTPUT)
+        snvmix2wig(args.INPUT, args.OUTPUT, plotter[args.plot_function])
 #main
 
 if __name__ == "__main__":
