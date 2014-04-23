@@ -18,12 +18,12 @@ plotter = {
     "min_norm": lambda x, y: min(x, y) / (x + y)
 }
 
-def freqs(input_handle, output_handle, log_handle):
+def freqs(snvmix_handle, output_handle, log_handle):
     """
     Plot the distribution of minor allele frequencies.
 
-    :arg input_handle:
-    :type input_handle: stream
+    :arg snvmix_handle:
+    :type snvmix_handle: stream
     :arg output_handle:
     :type output_handle: stream
     :arg log_handle:
@@ -31,7 +31,7 @@ def freqs(input_handle, output_handle, log_handle):
     """
     data = []
     total = 0
-    for record in snvmix_parse.walker(input_handle):
+    for record in snvmix_parse.walker(snvmix_handle):
         variants = min(record.reference_count, record.alternative_count)
         data.append(variants / float(record.reference_count +
             record.alternative_count))
@@ -44,7 +44,7 @@ def freqs(input_handle, output_handle, log_handle):
     pyplot.savefig("{}".format(output_handle.name))
 #freqs
 
-def snvmix2wig(input_handle, output_handle, plot_function="min"):
+def snvmix2wig(snvmix_handle, output_handle, plot_function="min"):
     """
     Convert an SNVMix file to wiggle.
     """
@@ -52,22 +52,30 @@ def snvmix2wig(input_handle, output_handle, plot_function="min"):
 
     wiggelen.write(map(lambda x: (x.chromosome, x.position,
         plot_func(x.reference_count, x.alternative_count)),
-        snvmix_parse.walker(input_handle)), track=output_handle)
+        snvmix_parse.walker(snvmix_handle)), track=output_handle)
 #snvmix2wig
 
-def intersect(input_handle, output_handle):
+def intersect(snvmix_handle, bed_handle, output_handle):
     """
     Intersect an SNVMix file with a BED track.
     """
-    pass
+    bed_track = pybedtools.BedTool(bed_handle.name)
+
+    for record in bed_track:
+        print record
+#intersect
 
 def main():
     """
     Main entry point.
     """
-    input_parser = argparse.ArgumentParser(add_help=False)
-    input_parser.add_argument("input_handle", metavar="INPUT",
-        type=argparse.FileType('r'), help="input file")
+    snvmix_parser = argparse.ArgumentParser(add_help=False)
+    snvmix_parser.add_argument("snvmix_handle", metavar="INPUT",
+        type=argparse.FileType('r'), help="input snvmix file")
+
+    bed_parser = argparse.ArgumentParser(add_help=False)
+    bed_parser.add_argument("bed_handle", metavar="BED",
+        type=argparse.FileType('r'), help="BED file")
 
     output_parser = argparse.ArgumentParser(add_help=False)
     output_parser.add_argument("output_handle", metavar="OUTPUT",
@@ -79,14 +87,14 @@ def main():
     parser.add_argument('-v', action="version", version=version(parser.prog))
     subparsers = parser.add_subparsers(dest="subcommand")
 
-    freqs_parser = subparsers.add_parser("freqs", parents=[input_parser,
+    freqs_parser = subparsers.add_parser("freqs", parents=[snvmix_parser,
         output_parser], description=docSplit(freqs))
     freqs_parser.add_argument("log_handle", metavar="LOG",
         type=argparse.FileType('w'), help="log file")
     freqs_parser.set_defaults(func=freqs)
 
     snvmix2wig_parser = subparsers.add_parser("snvmix2wig",
-        parents=[input_parser, output_parser],
+        parents=[snvmix_parser, output_parser],
         description=docSplit(snvmix2wig))
     snvmix2wig_parser.add_argument("-p", dest="plot_function",
         metavar="FUNCTION", choices=plotter, default="min",
@@ -94,7 +102,8 @@ def main():
     snvmix2wig_parser.set_defaults(func=snvmix2wig)
 
     intersect_parser = subparsers.add_parser("intersect",
-        parents=[input_parser, output_parser], description=docSplit(intersect))
+        parents=[snvmix_parser, bed_parser, output_parser],
+        description=docSplit(intersect))
     intersect_parser.set_defaults(func=intersect)
 
     try:
