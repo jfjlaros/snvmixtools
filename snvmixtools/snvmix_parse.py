@@ -23,7 +23,7 @@ class SNVMixRecord(object):
     #__init__
 
     def __str__(self):
-        return "{}:{}        {}       {}       {}:{},{}:{},{},{}".format(
+        return "{}:{}        {}       {}       {}:{},{}:{},{},{}\n".format(
             self.chromosome, self.position, self.reference, self.alternative,
             self.reference, self.reference_count, self.alternative,
             self.alternative_count,

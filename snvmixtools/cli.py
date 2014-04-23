@@ -59,10 +59,21 @@ def intersect(snvmix_handle, bed_handle, output_handle):
     """
     Intersect an SNVMix file with a BED track.
     """
+    walker = snvmix_parse.walker(snvmix_handle)
     bed_track = pybedtools.BedTool(bed_handle.name)
 
-    for record in bed_track:
-        print record
+    for bed_record in bed_track:
+        snvmix_record = walker.next()
+        while (snvmix_record.chromosome != bed_record.chrom or
+                snvmix_record.position < bed_record.start):
+            snvmix_record = walker.next()
+        while (snvmix_record.chromosome == bed_record.chrom and
+                snvmix_record.position <= bed_record.end and
+                snvmix_record.position >= bed_record.start):
+            output_handle.write(str(snvmix_record))
+            snvmix_record = walker.next()
+        #while
+    #for
 #intersect
 
 def main():
