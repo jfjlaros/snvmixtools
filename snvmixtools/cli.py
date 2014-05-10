@@ -24,15 +24,15 @@ def freqs(snvmix_handle, output_handle, log_handle, threshold=0,
     """
     Plot the distribution of minor allele frequencies.
 
-    :arg snvmix_handle:
+    :arg snvmix_handle: Open readable handle to an SNVMix file.
     :type snvmix_handle: stream
-    :arg output_handle:
+    :arg output_handle: Open writable handle to an image file.
     :type output_handle: stream
-    :arg log_handle:
+    :arg log_handle: Open writable handle to a text file.
     :type log_handle: stream
-    :arg threshold:
+    :arg threshold: Simple coverage threshold.
     :type threshold: int
-    :arg filter_function:
+    :arg filter_function: Custom filter function (overrides *threshold*).
     :type filter_function: str
     """
     filter_func = lambda x, y: x + y > threshold
@@ -60,6 +60,19 @@ def snvmix2wig(snvmix_handle, output_handle, plot_choice="min",
         plot_function="", threshold=0, filter_function=""):
     """
     Convert an SNVMix file to wiggle.
+
+    :arg snvmix_handle: Open readable handle to an SNVMix file.
+    :type snvmix_handle: stream
+    :arg output_handle: Open writable handle to an wiggle file.
+    :type output_handle: stream
+    :arg plot_choice: Select a predefined plotting function.
+    :type plot_choice: str
+    :arg plot_function: Custom plot function (overrides *plot_choice*).
+    :type plot_function: str
+    :arg threshold: Simple coverage threshold.
+    :type threshold: int
+    :arg filter_function: Custom filter function (overrides *threshold*).
+    :type filter_function: str
     """
     plot_func = plotter[plot_choice]
     if plot_function:
@@ -78,6 +91,13 @@ def snvmix2wig(snvmix_handle, output_handle, plot_choice="min",
 def intersect(snvmix_handle, bed_handle, output_handle):
     """
     Intersect an SNVMix file with a BED track.
+
+    :arg snvmix_handle: Open readable handle to an SNVMix file.
+    :type snvmix_handle: stream
+    :arg bed_handle: Open readable handle to a BED file.
+    :type bed_handle: stream
+    :arg output_handle: Open writable handle to an wiggle file.
+    :type output_handle: stream
     """
     walker = snvmix_parse.walker(snvmix_handle)
     bed_track = pybedtools.BedTool(bed_handle.name)
