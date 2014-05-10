@@ -2,8 +2,8 @@
 SNVMixtools: Various tools for the analysis and manipulation of SNVMix files.
 
 
-Copyright (c) 2013 Leiden University Medical Center <humgen@lumc.nl>
-Copyright (c) 2013 Jeroen F.J. Laros <j.f.j.laros@lumc.nl>
+Copyright (c) 2014 Leiden University Medical Center <humgen@lumc.nl>
+Copyright (c) 2014 Jeroen F.J. Laros <j.f.j.laros@lumc.nl>
 
 Licensed under the MIT license, see the LICENSE file.
 """
@@ -11,12 +11,12 @@ Licensed under the MIT license, see the LICENSE file.
 import argparse
 import os
 
-__version_info__ = ('0', '0', '1')
+__version_info__ = ('0', '0', '2')
 
 
 __version__ = '.'.join(__version_info__)
 __author__ = 'LUMC, Jeroen F.J. Laros'
-__contact__ = 'j.f.j.laros@lumc.nl'
+__contact__ = 'J.F.J.Laros@lumc.nl'
 __homepage__ = 'https://git.lumc.nl/j.f.j.laros/snvmixtools'
 
 usage = __doc__.split("\n\n\n")
