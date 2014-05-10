@@ -11,7 +11,7 @@ from matplotlib import pyplot
 import wiggelen
 import pybedtools
 
-from . import docSplit, version, usage
+from . import ProtectedFileType, doc_split, usage, version
 from . import snvmix_parse
 
 plotter = {
@@ -130,7 +130,7 @@ def main():
 
     output_parser = argparse.ArgumentParser(add_help=False)
     output_parser.add_argument("output_handle", metavar="OUTPUT",
-        type=argparse.FileType('w'), help="output file")
+        type=ProtectedFileType('w'), help="output file")
 
     filter_parser = argparse.ArgumentParser(add_help=False)
     filter_parser.add_argument("-t", dest="threshold", type=int, default=0,
@@ -146,14 +146,14 @@ def main():
     subparsers = parser.add_subparsers(dest="subcommand")
 
     freqs_parser = subparsers.add_parser("freqs", parents=[snvmix_parser,
-        output_parser, filter_parser], description=docSplit(freqs))
+        output_parser, filter_parser], description=doc_split(freqs))
     freqs_parser.add_argument("log_handle", metavar="LOG",
-        type=argparse.FileType('w'), help="log file")
+        type=ProtectedFileType('w'), help="log file")
     freqs_parser.set_defaults(func=freqs)
 
     snvmix2wig_parser = subparsers.add_parser("snvmix2wig",
         parents=[snvmix_parser, output_parser, filter_parser],
-        description=docSplit(snvmix2wig))
+        description=doc_split(snvmix2wig))
     snvmix2wig_parser.add_argument("-p", dest="plot_choice", type=str,
         choices=plotter, default="min",
         help='plotting function (%(type)s default="%(default)s")')
@@ -164,7 +164,7 @@ def main():
 
     intersect_parser = subparsers.add_parser("intersect",
         parents=[snvmix_parser, bed_parser, output_parser],
-        description=docSplit(intersect))
+        description=doc_split(intersect))
     intersect_parser.set_defaults(func=intersect)
 
     try:

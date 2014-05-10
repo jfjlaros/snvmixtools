@@ -8,6 +8,9 @@ Copyright (c) 2013 Jeroen F.J. Laros <j.f.j.laros@lumc.nl>
 Licensed under the MIT license, see the LICENSE file.
 """
 
+import argparse
+import os
+
 __version_info__ = ('0', '0', '1')
 
 
@@ -18,7 +21,13 @@ __homepage__ = 'https://git.lumc.nl/j.f.j.laros/snvmixtools'
 
 usage = __doc__.split("\n\n\n")
 
-def docSplit(func):
+class ProtectedFileType(argparse.FileType):
+    def __call__(self, string):
+        if 'w' in self._mode and os.path.exists(string):
+            raise IOError('failed to create "{}": file exists.'.format(string))
+        return super(ProtectedFileType, self).__call__(string)
+
+def doc_split(func):
     return func.__doc__.split("\n\n")[0]
 
 def version(name):
