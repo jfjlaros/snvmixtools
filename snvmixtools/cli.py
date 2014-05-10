@@ -5,6 +5,7 @@ from __future__ import division
 import argparse
 import matplotlib
 
+from math import *
 from matplotlib import pyplot
 
 import wiggelen
@@ -18,7 +19,8 @@ plotter = {
     "min_norm": lambda x, y: min(x, y) / (x + y)
 }
 
-def freqs(snvmix_handle, output_handle, log_handle):
+def freqs(snvmix_handle, output_handle, log_handle, threshold=0,
+        filter_function=""):
     """
     Plot the distribution of minor allele frequencies.
 
@@ -28,14 +30,24 @@ def freqs(snvmix_handle, output_handle, log_handle):
     :type output_handle: stream
     :arg log_handle:
     :type log_handle: stream
+    :arg threshold:
+    :type threshold: int
+    :arg filter_function:
+    :type filter_function: str
     """
+    filter_func = lambda x, y: x + y > threshold
+    if filter_function:
+        filter_func = eval("lambda " + filter_function)
+
     data = []
     total = 0
     for record in snvmix_parse.walker(snvmix_handle):
-        variants = min(record.reference_count, record.alternative_count)
-        data.append(variants / float(record.reference_count +
-            record.alternative_count))
-        total += variants
+        if filter_func(record.reference_count, record.alternative_count):
+            variants = min(record.reference_count, record.alternative_count)
+            data.append(variants / float(record.reference_count +
+                record.alternative_count))
+            total += variants
+        #if
     #for
 
     log_handle.write("{}\n".format(total))
@@ -44,14 +56,22 @@ def freqs(snvmix_handle, output_handle, log_handle):
     pyplot.savefig("{}".format(output_handle.name))
 #freqs
 
-def snvmix2wig(snvmix_handle, output_handle, plot_function="min"):
+def snvmix2wig(snvmix_handle, output_handle, plot_choice="min",
+        plot_function="", threshold=0, filter_function=""):
     """
     Convert an SNVMix file to wiggle.
     """
-    plot_func = plotter[plot_function]
+    plot_func = plotter[plot_choice]
+    if plot_function:
+        plot_func = eval("lambda " + plot_function)
+
+    filter_func = lambda x, y: x + y > threshold
+    if filter_function:
+        filter_func = eval("lambda " + filter_function)
 
     wiggelen.write(map(lambda x: (x.chromosome, x.position,
-        plot_func(x.reference_count, x.alternative_count)),
+        float(filter_func(x.reference_count, x.alternative_count) and
+        plot_func(x.reference_count, x.alternative_count))),
         snvmix_parse.walker(snvmix_handle)), track=output_handle)
 #snvmix2wig
 
@@ -92,6 +112,13 @@ def main():
     output_parser.add_argument("output_handle", metavar="OUTPUT",
         type=argparse.FileType('w'), help="output file")
 
+    filter_parser = argparse.ArgumentParser(add_help=False)
+    filter_parser.add_argument("-t", dest="threshold", type=int, default=0,
+        help='filter treshold (%(type)s default="%(default)s")')
+    filter_parser.add_argument("--filter-function", dest="filter_function",
+        type=str, default="",
+        help='custom filter function (%(type)s default="%(default)s")')
+
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=usage[0], epilog=usage[1])
@@ -99,17 +126,20 @@ def main():
     subparsers = parser.add_subparsers(dest="subcommand")
 
     freqs_parser = subparsers.add_parser("freqs", parents=[snvmix_parser,
-        output_parser], description=docSplit(freqs))
+        output_parser, filter_parser], description=docSplit(freqs))
     freqs_parser.add_argument("log_handle", metavar="LOG",
         type=argparse.FileType('w'), help="log file")
     freqs_parser.set_defaults(func=freqs)
 
     snvmix2wig_parser = subparsers.add_parser("snvmix2wig",
-        parents=[snvmix_parser, output_parser],
+        parents=[snvmix_parser, output_parser, filter_parser],
         description=docSplit(snvmix2wig))
-    snvmix2wig_parser.add_argument("-p", dest="plot_function",
-        metavar="FUNCTION", choices=plotter, default="min",
-        help="plotting function")
+    snvmix2wig_parser.add_argument("-p", dest="plot_choice", type=str,
+        choices=plotter, default="min",
+        help='plotting function (%(type)s default="%(default)s")')
+    snvmix2wig_parser.add_argument("--plot-function", dest="plot_function",
+        type=str, default="",
+        help='custom plot function (%(type)s default="%(default)s")')
     snvmix2wig_parser.set_defaults(func=snvmix2wig)
 
     intersect_parser = subparsers.add_parser("intersect",
