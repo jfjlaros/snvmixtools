@@ -52,7 +52,8 @@ def freqs(snvmix_handle, output_handle, log_handle, threshold=0,
 
     log_handle.write("{}\n".format(total))
     pyplot.axis([0, 0.5, 0.1, 100000])
-    pyplot.hist(data, bins=100, log=True)
+    if data:
+        pyplot.hist(data, bins=100, log=True)
     pyplot.savefig("{}".format(output_handle.name))
 #freqs
 
