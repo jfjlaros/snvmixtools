@@ -4,6 +4,7 @@ from __future__ import division
 
 import argparse
 import matplotlib
+import os
 
 from math import *
 from matplotlib import pyplot
@@ -87,7 +88,7 @@ def snvmix2wig(snvmix_handle, output_handle, plot_choice="min",
         float(filter_func(x.reference_count, x.alternative_count) and
         plot_func(x.reference_count, x.alternative_count))),
         snvmix_parse.walker(snvmix_handle)), track=output_handle,
-        name=output_handle.name)
+        name=os.path.splitext(os.path.basename(output_handle.name))[0])
 #snvmix2wig
 
 def intersect(snvmix_handle, bed_handle, output_handle):
