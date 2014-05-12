@@ -86,7 +86,8 @@ def snvmix2wig(snvmix_handle, output_handle, plot_choice="min",
     wiggelen.write(map(lambda x: (x.chromosome, x.position,
         float(filter_func(x.reference_count, x.alternative_count) and
         plot_func(x.reference_count, x.alternative_count))),
-        snvmix_parse.walker(snvmix_handle)), track=output_handle)
+        snvmix_parse.walker(snvmix_handle)), track=output_handle,
+        name=output_handle.name)
 #snvmix2wig
 
 def intersect(snvmix_handle, bed_handle, output_handle):
