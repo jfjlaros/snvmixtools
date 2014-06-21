@@ -8,6 +8,7 @@ import os
 
 from math import *
 from matplotlib import pyplot
+from scipy import stats
 
 import wiggelen
 import pybedtools
@@ -57,6 +58,35 @@ def freqs(snvmix_handle, output_handle, log_handle, threshold=0,
         pyplot.hist(data, bins=100, log=True)
     pyplot.savefig("{}".format(output_handle.name))
 #freqs
+
+def varcall(snvmix_handle, output_handle, p_value=0.05, error_rate=0.01,
+        multiple_testing_correction=False):
+    """
+    Call variants based on a one-tailed binomial test.
+
+    :arg snvmix_handle: Open readable handle to an SNVMix file.
+    :type snvmix_handle: stream
+    :arg output_handle: Open writable handle to an SNVMix file.
+    :type output_handle: stream
+    :arg p_value: p-value threshold.
+    :type p_value: float
+    :arg error_rate: Base calling error rate.
+    :type error_rate: float
+    :arg mutliple_testing_correction: Do a Bonferroni correction.
+    :type mutliple_testing_correction: bool
+    """
+    correction = 1
+    if multiple_testing_correction:
+        correction = sum(1 for _ in snvmix_parse.walker(snvmix_handle))
+        snvmix_handle.seek(0)
+    #if
+
+    for record in snvmix_parse.walker(snvmix_handle):
+        if stats.binom.sf(min(record.reference_count,
+                record.alternative_count), record.reference_count +
+                record.alternative_count, error_rate) < p_value / correction:
+            output_handle.write(str(record))
+#varcall
 
 def snvmix2wig(snvmix_handle, output_handle, plot_choice="min",
         plot_function="", threshold=0, filter_function=""):
@@ -164,6 +194,17 @@ def main():
         type=str, default="",
         help='custom plot function (%(type)s default="%(default)s")')
     snvmix2wig_parser.set_defaults(func=snvmix2wig)
+
+    varcall_parser = subparsers.add_parser("varcall", parents=[snvmix_parser,
+        output_parser], description=doc_split(varcall))
+    varcall_parser.add_argument("-p", dest="p_value", type=float, default=0.05,
+        help='p-value threshold (%(type)s default="%(default)s")')
+    varcall_parser.add_argument("-e", dest="error_rate", type=float,
+        default=0.01,
+        help='base calling error rate (%(type)s default="%(default)s")')
+    varcall_parser.add_argument("-m", dest="multiple_testing_correction",
+        default=False, action="store_true", help='do a Bonferroni correction')
+    varcall_parser.set_defaults(func=varcall)
 
     intersect_parser = subparsers.add_parser("intersect",
         parents=[snvmix_parser, bed_parser, output_parser],
